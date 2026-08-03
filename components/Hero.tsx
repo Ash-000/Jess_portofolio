@@ -10,9 +10,7 @@ import { useLanguage } from "@/context/LanguageContext";
 export default function Hero() {
   const { t, lang } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [heroMedia, setHeroMedia] = useState<string>(
-    "/uploads/clip_ipb.mp4"
-  );
+  const [heroMedia, setHeroMedia] = useState<string>("/uploads/clip_ipb.mp4");
 
   useEffect(() => {
     fetch("/api/settings")
@@ -32,9 +30,16 @@ export default function Hero() {
       });
 
       tl.fromTo(
+        ".gsap-hero-image",
+        { opacity: 0, scale: 0.95, filter: "blur(10px)", y: 20 },
+        { opacity: 1, scale: 1, filter: "blur(0px)", y: 0, duration: 1.1, ease: "power3.out" }
+      );
+
+      tl.fromTo(
         ".gsap-hero-badge",
         { clipPath: "inset(0 100% 0 0)", opacity: 0 },
-        { clipPath: "inset(0 0% 0 0)", opacity: 1, duration: 0.8 }
+        { clipPath: "inset(0 0% 0 0)", opacity: 1, duration: 0.8 },
+        "-=0.6"
       );
 
       tl.fromTo(
@@ -47,7 +52,7 @@ export default function Hero() {
           stagger: 0.07,
           ease: "power3.out",
         },
-        "-=0.4"
+        "-=0.5"
       );
 
       tl.fromTo(
@@ -70,13 +75,6 @@ export default function Hero() {
         { opacity: 1, y: 0, duration: 0.6, stagger: 0.1 },
         "-=0.4"
       );
-
-      tl.fromTo(
-        ".gsap-hero-image",
-        { opacity: 0, scale: 0.95, filter: "blur(10px)" },
-        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 1.2, ease: "power3.out" },
-        "-=0.8"
-      );
     },
     { scope: containerRef, dependencies: [lang] }
   );
@@ -88,23 +86,53 @@ export default function Hero() {
     <section
       id="home"
       ref={containerRef}
-      className="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden bg-cream-50 text-stone-900 dark:bg-[#0C110E] dark:text-cream-50 transition-colors duration-500"
+      className="relative pt-28 pb-20 md:pt-36 md:pb-28 overflow-hidden bg-cream-50 text-stone-900 dark:bg-[#0C110E] dark:text-cream-50 transition-colors duration-500"
     >
       {/* Background Orbs */}
       <div className="orb w-96 h-96 bg-emerald-300/15 dark:bg-emerald-900/15 -top-20 -left-20" />
       <div className="orb w-96 h-96 bg-stone-300/20 dark:bg-emerald-950/20 bottom-10 right-10" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
-        {/* Left Column: Text Content */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Clip Path Revealing Badge */}
+      <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-12 relative z-10">
+        {/* TOP SECTION: Video / Media Showcase */}
+        <div className="gsap-hero-image w-full max-w-5xl mx-auto">
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl group border border-stone-200/80 dark:border-stone-800/80 bg-stone-950">
+            <div className="absolute -inset-[1px] bg-gradient-to-br from-emerald-500/30 via-transparent to-emerald-500/20 rounded-3xl z-0" />
+
+            <div className="relative z-10 rounded-3xl overflow-hidden">
+              {isVideo ? (
+                <video
+                  src={heroMedia}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-[360px] sm:h-[460px] lg:h-[540px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                />
+              ) : (
+                <Image
+                  src={heroMedia}
+                  alt="Sustainable Agriculture Research"
+                  width={1200}
+                  height={675}
+                  className="w-full h-[360px] sm:h-[460px] lg:h-[540px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                  priority
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+            </div>
+          </div>
+        </div>
+
+        {/* BOTTOM SECTION: Text Content Centered Below Video */}
+        <div className="max-w-3xl mx-auto text-center space-y-6">
+          {/* Badge */}
           <div className="gsap-hero-badge inline-flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-emerald-100/80 dark:bg-emerald-950/80 border border-emerald-300/80 dark:border-emerald-700/50 text-emerald-800 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
             <Leaf className="w-3.5 h-3.5 animate-pulse" />
             <span>{t.hero.badge}</span>
           </div>
 
-          {/* GSAP Word-by-Word Reveal Title */}
-          <h1 className="font-title text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-forest-900 dark:text-cream-50 leading-[1.25] py-1.5 -my-1.5 flex flex-wrap gap-x-3 gap-y-1">
+          {/* Title */}
+          <h1 className="font-title text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-forest-900 dark:text-cream-50 leading-[1.25] py-1.5 -my-1.5 flex flex-wrap justify-center gap-x-3 gap-y-1">
             {titleWords.map((word: string, idx: number) => (
               <span key={idx} className="inline-block overflow-hidden py-1 -my-1">
                 <span
@@ -120,15 +148,16 @@ export default function Hero() {
             ))}
           </h1>
 
-          {/* Animated separator line */}
-          <div className="gsap-hero-line h-[2px] w-24 bg-gradient-to-r from-emerald-600 to-emerald-400 dark:from-emerald-400 dark:to-emerald-600 origin-left" />
+          {/* Separator line */}
+          <div className="gsap-hero-line h-[2px] w-24 bg-gradient-to-r from-emerald-600 to-emerald-400 dark:from-emerald-400 dark:to-emerald-600 mx-auto" />
 
-          <p className="gsap-hero-desc text-base sm:text-lg text-stone-600 dark:text-stone-400 leading-relaxed font-sans max-w-2xl">
+          {/* Description */}
+          <p className="gsap-hero-desc text-base sm:text-lg text-stone-600 dark:text-stone-400 leading-relaxed font-sans max-w-2xl mx-auto">
             {t.hero.description}
           </p>
 
           {/* Action Buttons */}
-          <div className="pt-2 flex flex-wrap items-center gap-4">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
             <a
               href="#projects"
               className="gsap-hero-btn group inline-flex items-center space-x-2 px-7 py-3.5 rounded-full bg-stone-900 text-cream-50 dark:bg-emerald-600 dark:hover:bg-emerald-500 hover:bg-stone-800 text-xs font-semibold uppercase tracking-widest transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 duration-300"
@@ -143,36 +172,6 @@ export default function Hero() {
             >
               <span>{t.hero.academicJourney}</span>
             </a>
-          </div>
-        </div>
-
-        {/* Right Visual Card (Image or Video) */}
-        <div className="gsap-hero-image lg:col-span-5 relative">
-          <div className="relative mx-auto max-w-md lg:max-w-none rounded-2xl overflow-hidden shadow-2xl group">
-            <div className="absolute -inset-[1px] bg-gradient-to-br from-emerald-500/30 via-transparent to-emerald-500/20 rounded-2xl z-0" />
-
-            <div className="relative z-10 rounded-2xl overflow-hidden">
-              {isVideo ? (
-                <video
-                  src={heroMedia}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-[420px] lg:h-[520px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
-                />
-              ) : (
-                <Image
-                  src={heroMedia}
-                  alt="Sustainable Agriculture Research"
-                  width={600}
-                  height={700}
-                  className="w-full h-[420px] lg:h-[520px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
-                  priority
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-            </div>
           </div>
         </div>
       </div>
