@@ -37,6 +37,7 @@ export default function Projects() {
     { scope: containerRef, dependencies: [activeCategory] }
   );
 
+  // Buttery-smooth mouse-tracking card tilt
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
@@ -45,15 +46,18 @@ export default function Projects() {
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotateX = (y - centerY) / -12;
-    const rotateY = (x - centerX) / 12;
+    // Subtle & soft tilt angle (max ±5 degrees)
+    const rotateX = ((y - centerY) / centerY) * -5;
+    const rotateY = ((x - centerX) / centerX) * 5;
 
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+    card.style.transition = "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease-out";
+    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateZ(10px) translateY(-6px)`;
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
-    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+    card.style.transition = "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease-out";
+    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px) translateY(0px)`;
   };
 
   const categoryKeys = ["All", "Agronomy", "Field Study", "Engineering"] as const;
@@ -82,7 +86,7 @@ export default function Projects() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-4 max-w-2xl">
-            <div className="inline-flex items-center space-x-2 text-forest-600 dark:text-emerald-400 font-serif text-xl font-bold">
+            <div className="inline-flex items-center space-x-2 text-forest-600 dark:text-emerald-400 font-title text-xl font-bold">
               <span className="w-8 h-[2px] bg-forest-600 dark:bg-emerald-400 inline-block" />
               <h2>{t.projects.headerBadge}</h2>
             </div>
@@ -124,7 +128,7 @@ export default function Projects() {
                 key={project.id}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                className="gsap-project-card group bg-white dark:bg-stone-950 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-2xl hover:border-emerald-500/50 transition-all duration-300 flex flex-col justify-between cursor-pointer"
+                className="gsap-project-card group bg-white dark:bg-stone-950 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-2xl hover:border-emerald-500/50 flex flex-col justify-between cursor-pointer will-change-transform"
                 style={{ transformStyle: "preserve-3d" }}
               >
                 <div>
@@ -134,7 +138,7 @@ export default function Projects() {
                       src={imageSrc}
                       alt={project.title}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                      className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -154,7 +158,7 @@ export default function Projects() {
 
                   {/* Content */}
                   <div className="p-6 space-y-3">
-                    <h3 className="font-serif text-xl font-bold text-stone-900 dark:text-cream-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+                    <h3 className="font-title text-xl font-bold text-stone-900 dark:text-cream-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
                       {project.title}
                     </h3>
 
