@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, MapPin, Globe, Send, MessageSquare, CheckCircle, Phone } from "lucide-react";
+import { Mail, Send, MessageSquare, CheckCircle, Phone } from "lucide-react";
 import { Link001 } from "@/components/ui/skiper-ui/skiper40";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -19,13 +19,10 @@ export default function Contact() {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
 
-    // Target WhatsApp Phone Number: +62 852-8098-3522 (clean: 6285280983522)
     const phoneNumber = "6285280983522";
-
     const waText = `Halo, saya *${formData.name}* (${formData.email})\n\n*Subjek/Topik*: ${formData.topic}\n\n*Pesan*:\n${formData.message}`;
     const waUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(waText)}`;
 
-    // Open WhatsApp Web or Mobile App directly
     window.open(waUrl, "_blank", "noopener,noreferrer");
 
     setSubmitted(true);
@@ -88,32 +85,6 @@ export default function Contact() {
                       inquiries@stewardshipjournal.org
                     </Link001>
                   </div>
-                </div>
-              </div>
-
-              {/* Location Item */}
-              <div className="flex items-start space-x-4 p-4 rounded-xl bg-stone-900/60 border border-stone-800/80">
-                <div className="p-3 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/50 shrink-0">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs uppercase tracking-widest text-stone-400 font-semibold">{t.contact.locationLabel}</h4>
-                  <p className="text-stone-100 font-medium text-sm sm:text-base mt-0.5">
-                    {t.contact.locationValue}
-                  </p>
-                </div>
-              </div>
-
-              {/* Network Item */}
-              <div className="flex items-start space-x-4 p-4 rounded-xl bg-stone-900/60 border border-stone-800/80">
-                <div className="p-3 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/50 shrink-0">
-                  <Globe className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs uppercase tracking-widest text-stone-400 font-semibold">{t.contact.networkLabel}</h4>
-                  <p className="text-stone-100 font-medium text-sm sm:text-base mt-0.5">
-                    {t.contact.networkValue}
-                  </p>
                 </div>
               </div>
             </div>
