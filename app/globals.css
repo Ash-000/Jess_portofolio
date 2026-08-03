@@ -95,6 +95,25 @@ body::after {
 }
 
 /* ═══════════════════════════════════════════
+   INFINITE MARQUEE LOOP ANIMATION
+   ═══════════════════════════════════════════ */
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ═══════════════════════════════════════════
    ANIMATION UTILITIES
    ═══════════════════════════════════════════ */
 
@@ -155,5 +174,8 @@ body::after {
   }
   body::after {
     display: none;
+  }
+  .animate-marquee {
+    animation: none;
   }
 }

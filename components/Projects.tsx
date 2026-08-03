@@ -19,17 +19,17 @@ export default function Projects() {
     () => {
       gsap.fromTo(
         ".gsap-project-card",
-        { opacity: 0, y: 50, scale: 0.95 },
+        { opacity: 0, y: 40, scale: 0.96 },
         {
           scrollTrigger: {
-            trigger: ".gsap-project-grid",
-            start: "top 80%",
+            trigger: ".gsap-project-grid-container",
+            start: "top 85%",
           },
           opacity: 1,
           y: 0,
           scale: 1,
           duration: 0.7,
-          stagger: 0.12,
+          stagger: 0.1,
           ease: "power3.out",
         }
       );
@@ -37,7 +37,6 @@ export default function Projects() {
     { scope: containerRef, dependencies: [activeCategory] }
   );
 
-  // Buttery-smooth mouse-tracking card tilt
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
@@ -46,7 +45,6 @@ export default function Projects() {
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    // Subtle & soft tilt angle (max ±5 degrees)
     const rotateX = ((y - centerY) / centerY) * -5;
     const rotateY = ((x - centerX) / centerX) * 5;
 
@@ -67,14 +65,98 @@ export default function Projects() {
     "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=800&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?q=80&w=800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=800&auto=format&fit=crop",
   ];
 
-  const statusIcons = [CheckCircle2, Clock, Sparkles, CheckCircle2];
+  const statusIcons = [CheckCircle2, Clock, Sparkles, CheckCircle2, Clock, CheckCircle2];
 
   const filteredProjects =
     activeCategory === "All"
       ? t.projects.items
       : t.projects.items.filter((p) => p.category === activeCategory);
+
+  const isLooping = filteredProjects.length > 3;
+
+  // Duplicated list for seamless infinite marquee loop
+  const loopList = isLooping ? [...filteredProjects, ...filteredProjects] : filteredProjects;
+
+  const renderCard = (project: (typeof t.projects.items)[0], idx: number) => {
+    const StatusIconComponent = statusIcons[(project.id - 1) % statusIcons.length];
+    const imageSrc = projectImages[(project.id - 1) % projectImages.length];
+
+    return (
+      <div
+        key={`${project.id}-${idx}`}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className={`gsap-project-card group bg-white dark:bg-stone-950 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-2xl hover:border-emerald-500/50 flex flex-col justify-between cursor-pointer will-change-transform ${
+          isLooping ? "w-[320px] sm:w-[370px] lg:w-[390px] shrink-0" : "w-full"
+        }`}
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        <div>
+          {/* Image Container */}
+          <div className="relative h-56 w-full overflow-hidden bg-stone-100 dark:bg-stone-800">
+            <Image
+              src={imageSrc}
+              alt={project.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            <div className="absolute top-4 left-4 flex space-x-2">
+              <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/90 dark:bg-stone-900/90 text-forest-900 dark:text-emerald-300 backdrop-blur-md shadow">
+                {t.projects.categories[project.category as keyof typeof t.projects.categories] || project.category}
+              </span>
+            </div>
+
+            <div className="absolute top-4 right-4">
+              <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-stone-900/80 text-emerald-300 backdrop-blur-md border border-emerald-500/30">
+                <StatusIconComponent className="w-3 h-3 text-emerald-400" />
+                <span>{project.status}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-3">
+            <h3 className="font-title text-xl font-bold text-stone-900 dark:text-cream-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+              {project.title}
+            </h3>
+
+            <p className="text-stone-600 dark:text-stone-300 text-xs sm:text-sm leading-relaxed line-clamp-3">
+              {project.description}
+            </p>
+
+            <div className="pt-2 flex flex-wrap gap-1.5">
+              {project.tags.map((tag, tagIdx) => (
+                <span
+                  key={tagIdx}
+                  className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-stone-100 dark:bg-stone-900 text-stone-600 dark:text-stone-400 border border-stone-200/50 dark:border-stone-800/50"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Card Footer */}
+        <div className="px-6 py-4 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between text-xs">
+          <span className="text-stone-500 font-medium">{project.meta}</span>
+          <a
+            href="#contact"
+            className="inline-flex items-center space-x-1 font-semibold text-emerald-700 dark:text-emerald-400 group-hover:translate-x-1 transition-transform"
+          >
+            <span>{t.projects.readWork}</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <section
@@ -117,82 +199,19 @@ export default function Projects() {
           </div>
         </div>
 
-        {/* Grid of Projects */}
-        <div className="gsap-project-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map((project, idx) => {
-            const StatusIconComponent = statusIcons[idx % statusIcons.length];
-            const imageSrc = projectImages[idx % projectImages.length];
-
-            return (
-              <div
-                key={project.id}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseLeave}
-                className="gsap-project-card group bg-white dark:bg-stone-950 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-2xl hover:border-emerald-500/50 flex flex-col justify-between cursor-pointer will-change-transform"
-                style={{ transformStyle: "preserve-3d" }}
-              >
-                <div>
-                  {/* Image Container */}
-                  <div className="relative h-56 w-full overflow-hidden bg-stone-100 dark:bg-stone-800">
-                    <Image
-                      src={imageSrc}
-                      alt={project.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                    <div className="absolute top-4 left-4 flex space-x-2">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/90 dark:bg-stone-900/90 text-forest-900 dark:text-emerald-300 backdrop-blur-md shadow">
-                        {t.projects.categories[project.category as keyof typeof t.projects.categories] || project.category}
-                      </span>
-                    </div>
-
-                    <div className="absolute top-4 right-4">
-                      <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-stone-900/80 text-emerald-300 backdrop-blur-md border border-emerald-500/30">
-                        <StatusIconComponent className="w-3 h-3 text-emerald-400" />
-                        <span>{project.status}</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-6 space-y-3">
-                    <h3 className="font-title text-xl font-bold text-stone-900 dark:text-cream-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                      {project.title}
-                    </h3>
-
-                    <p className="text-stone-600 dark:text-stone-300 text-xs sm:text-sm leading-relaxed line-clamp-3">
-                      {project.description}
-                    </p>
-
-                    <div className="pt-2 flex flex-wrap gap-1.5">
-                      {project.tags.map((tag, tagIdx) => (
-                        <span
-                          key={tagIdx}
-                          className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-stone-100 dark:bg-stone-900 text-stone-600 dark:text-stone-400 border border-stone-200/50 dark:border-stone-800/50"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card Footer */}
-                <div className="px-6 py-4 border-t border-stone-100 dark:border-stone-800/80 flex items-center justify-between text-xs">
-                  <span className="text-stone-500 font-medium">{project.meta}</span>
-                  <a
-                    href="#contact"
-                    className="inline-flex items-center space-x-1 font-semibold text-emerald-700 dark:text-emerald-400 group-hover:translate-x-1 transition-transform"
-                  >
-                    <span>{t.projects.readWork}</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </a>
-                </div>
+        {/* Projects Grid or Infinite Loop Marquee */}
+        <div className="gsap-project-grid-container w-full overflow-hidden py-2">
+          {isLooping ? (
+            <div className="relative w-full overflow-hidden mask-fade-edges">
+              <div className="animate-marquee gap-8 pr-8">
+                {loopList.map((project, idx) => renderCard(project, idx))}
               </div>
-            );
-          })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProjects.map((project, idx) => renderCard(project, idx))}
+            </div>
+          )}
         </div>
       </div>
     </section>

@@ -115,6 +115,26 @@ export const dictionary = {
           meta: "Vol 11, Issue 3",
           tags: ["Biodiversity", "Cover Crops", "Soil Organic"],
         },
+        {
+          id: 5,
+          title: "Smart Greenhouse Microclimate",
+          category: "Engineering",
+          status: "Active Trial",
+          description:
+            "Automating temperature and humidity regulations with embedded microcontrollers to safeguard high-value crop cultivation.",
+          meta: "Vol 11, Issue 2",
+          tags: ["Greenhouse", "Microclimate", "Automation"],
+        },
+        {
+          id: 6,
+          title: "Soil Carbon Sequestration",
+          category: "Field Study",
+          status: "Published",
+          description:
+            "Quantifying deep-root carbon capture capacity across multi-year crop rotations to support sustainable carbon offset initiatives.",
+          meta: "Vol 11, Issue 1",
+          tags: ["Carbon Capture", "Regenerative", "Soil Science"],
+        },
       ],
     },
     contact: {
@@ -268,6 +288,26 @@ export const dictionary = {
             "Mengkaji dampak campuran tanaman penutup tanah yang beragam terhadap bahan organik tanah, penekanan gulma, dan hasil tanaman utama.",
           meta: "Vol 11, Edisi 3",
           tags: ["Biodiversitas", "Tanaman Penutup", "Organik Tanah"],
+        },
+        {
+          id: 5,
+          title: "Mikroklimat Rumah Kaca Pintar",
+          category: "Engineering",
+          status: "Uji Coba Aktif",
+          description:
+            "Otomatisasi regulasi suhu dan kelembaban dengan mikrokontroler tertanam untuk melindungi budidaya tanaman bernilai tinggi.",
+          meta: "Vol 11, Edisi 2",
+          tags: ["Rumah Kaca", "Mikroklimat", "Otomatisasi"],
+        },
+        {
+          id: 6,
+          title: "Sekuestrasi Karbon Tanah",
+          category: "Field Study",
+          status: "Dipublikasikan",
+          description:
+            "Kuantifikasi kapasitas penyerapan karbon akar dalam pada rotasi tanaman multi-tahun untuk mendukung inisiatif kompensasi karbon.",
+          meta: "Vol 11, Edisi 1",
+          tags: ["Serapan Karbon", "Regeneratif", "Ilmu Tanah"],
         },
       ],
     },
