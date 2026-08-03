@@ -10,8 +10,8 @@ import { useLanguage } from "@/context/LanguageContext";
 export default function Hero() {
   const { t, lang } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [heroImage, setHeroImage] = useState<string>(
-    "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?q=80&w=1000&auto=format&fit=crop"
+  const [heroMedia, setHeroMedia] = useState<string>(
+    "/uploads/clip_ipb.mp4"
   );
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function Hero() {
       .then((r) => r.json())
       .then((data) => {
         if (data.settings?.hero_image) {
-          setHeroImage(data.settings.hero_image);
+          setHeroMedia(data.settings.hero_image);
         }
       })
       .catch((err) => console.error("Error fetching hero image setting:", err));
@@ -82,6 +82,7 @@ export default function Hero() {
   );
 
   const titleWords = t.hero.title.split(" ");
+  const isVideo = heroMedia.toLowerCase().endsWith(".mp4") || heroMedia.toLowerCase().endsWith(".webm");
 
   return (
     <section
@@ -145,20 +146,31 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right Visual Image Card */}
+        {/* Right Visual Card (Image or Video) */}
         <div className="gsap-hero-image lg:col-span-5 relative">
           <div className="relative mx-auto max-w-md lg:max-w-none rounded-2xl overflow-hidden shadow-2xl group">
             <div className="absolute -inset-[1px] bg-gradient-to-br from-emerald-500/30 via-transparent to-emerald-500/20 rounded-2xl z-0" />
 
             <div className="relative z-10 rounded-2xl overflow-hidden">
-              <Image
-                src={heroImage}
-                alt="Sustainable Agriculture Research"
-                width={600}
-                height={700}
-                className="w-full h-[420px] lg:h-[520px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
-                priority
-              />
+              {isVideo ? (
+                <video
+                  src={heroMedia}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-[420px] lg:h-[520px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                />
+              ) : (
+                <Image
+                  src={heroMedia}
+                  alt="Sustainable Agriculture Research"
+                  width={600}
+                  height={700}
+                  className="w-full h-[420px] lg:h-[520px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                  priority
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
             </div>
 

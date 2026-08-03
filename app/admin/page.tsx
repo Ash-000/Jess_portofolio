@@ -83,7 +83,7 @@ export default function AdminPage() {
     setTimeout(() => setNotification(null), 3500);
   };
 
-  // Upload file helper
+  // Upload file helper (supports both image and MP4 video)
   const handleFileUpload = async (file: File): Promise<string | null> => {
     setUploading(true);
     try {
@@ -169,7 +169,7 @@ export default function AdminPage() {
     }
   };
 
-  // Save Site Settings (Hero & About images)
+  // Save Site Settings (Hero & About media)
   const handleSaveSettings = async (key: string, value: string) => {
     setSaving(true);
     try {
@@ -180,7 +180,7 @@ export default function AdminPage() {
       }).then((r) => r.json());
 
       if (res.success) {
-        showNotify(`Pengaturan gambar ${key} berhasil disimpan!`);
+        showNotify(`Pengaturan media ${key} berhasil disimpan!`);
         fetchData();
       }
     } catch (err) {
@@ -189,6 +189,9 @@ export default function AdminPage() {
       setSaving(false);
     }
   };
+
+  const isVideo = (url?: string) =>
+    url ? url.toLowerCase().endsWith(".mp4") || url.toLowerCase().endsWith(".webm") : false;
 
   return (
     <div className="min-h-screen bg-[#0C110E] text-stone-100 font-sans selection:bg-emerald-500 selection:text-white pb-20">
@@ -210,7 +213,7 @@ export default function AdminPage() {
                   Live DB
                 </span>
               </h1>
-              <p className="text-xs text-stone-400">Kelola Data Proyek & Gambar Landing Page</p>
+              <p className="text-xs text-stone-400">Kelola Data Proyek & Media Landing Page (Gambar & Video MP4)</p>
             </div>
           </div>
 
@@ -257,7 +260,7 @@ export default function AdminPage() {
             }`}
           >
             <ImageIcon className="w-4 h-4" />
-            <span>Ubah Gambar Landing Page</span>
+            <span>Ubah Media Landing Page (Gambar / Video MP4)</span>
           </button>
         </div>
 
@@ -305,18 +308,22 @@ export default function AdminPage() {
                     className="bg-stone-900/80 border border-stone-800 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between group hover:border-emerald-800/80 transition-all"
                   >
                     <div>
-                      {/* Project Image */}
+                      {/* Project Image or Video */}
                       <div className="relative h-44 w-full bg-stone-950">
                         {proj.image ? (
-                          <Image
-                            src={proj.image}
-                            alt={proj.titleEn}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
+                          isVideo(proj.image) ? (
+                            <video src={proj.image} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                          ) : (
+                            <Image
+                              src={proj.image}
+                              alt={proj.titleEn}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          )
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-stone-600 text-xs">
-                            Tidak Ada Gambar
+                            Tidak Ada Media
                           </div>
                         )}
                         <div className="absolute top-3 left-3 bg-stone-950/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-emerald-400 border border-emerald-800/50">
@@ -381,29 +388,33 @@ export default function AdminPage() {
         {activeTab === "settings" && (
           <div className="max-w-4xl space-y-8">
             <div>
-              <h2 className="text-lg font-bold text-white">Ubah Gambar Landing Page</h2>
+              <h2 className="text-lg font-bold text-white">Ubah Media Landing Page (Gambar atau Video MP4)</h2>
               <p className="text-xs text-stone-400">
-                Unggah file gambar dari komputer Anda atau masukkan URL gambar secara langsung.
+                Unggah file gambar/video (MP4) dari komputer Anda atau masukkan URL media secara langsung.
               </p>
             </div>
 
-            {/* Hero Image Setting */}
+            {/* Hero Media Setting */}
             <div className="p-6 bg-stone-900/80 border border-stone-800 rounded-2xl space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-title text-base font-bold text-white flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span>Gambar Hero Section</span>
+                  <span>Media Hero Section (Gambar / Video MP4)</span>
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                {/* Image Preview */}
+                {/* Media Preview */}
                 <div className="md:col-span-5 relative h-48 w-full bg-stone-950 rounded-xl overflow-hidden border border-stone-800">
                   {settings.hero_image ? (
-                    <Image src={settings.hero_image} alt="Hero Preview" fill className="object-cover" />
+                    isVideo(settings.hero_image) ? (
+                      <video src={settings.hero_image} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                    ) : (
+                      <Image src={settings.hero_image} alt="Hero Preview" fill className="object-cover" />
+                    )
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-stone-500 text-xs">
-                      Default Image Active
+                      Default Media Active
                     </div>
                   )}
                 </div>
@@ -412,13 +423,13 @@ export default function AdminPage() {
                 <div className="md:col-span-7 space-y-4">
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-stone-300 uppercase tracking-wider">
-                      URL Gambar Hero
+                      URL Gambar / Video Hero (MP4)
                     </label>
                     <input
                       type="text"
                       value={settings.hero_image || ""}
                       onChange={(e) => setSettings({ ...settings, hero_image: e.target.value })}
-                      placeholder="https://... atau /uploads/..."
+                      placeholder="https://... atau /uploads/clip_ipb.mp4"
                       className="w-full px-4 py-2.5 rounded-xl bg-stone-950 border border-stone-800 text-sm text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
@@ -426,10 +437,10 @@ export default function AdminPage() {
                   <div className="flex items-center space-x-3">
                     <label className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-stone-200 cursor-pointer flex items-center space-x-2 transition-colors">
                       <Upload className="w-4 h-4" />
-                      <span>{uploading ? "Mengunggah..." : "Unggah File Gambar"}</span>
+                      <span>{uploading ? "Mengunggah..." : "Unggah File (Gambar / MP4)"}</span>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/*"
                         className="hidden"
                         onChange={async (e) => {
                           if (e.target.files?.[0]) {
@@ -455,23 +466,27 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* About Image Setting */}
+            {/* About Media Setting */}
             <div className="p-6 bg-stone-900/80 border border-stone-800 rounded-2xl space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-title text-base font-bold text-white flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span>Gambar About / Profil Section</span>
+                  <span>Gambar / Video About Section</span>
                 </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                {/* Image Preview */}
+                {/* Media Preview */}
                 <div className="md:col-span-5 relative h-48 w-full bg-stone-950 rounded-xl overflow-hidden border border-stone-800">
                   {settings.about_image ? (
-                    <Image src={settings.about_image} alt="About Preview" fill className="object-cover" />
+                    isVideo(settings.about_image) ? (
+                      <video src={settings.about_image} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                    ) : (
+                      <Image src={settings.about_image} alt="About Preview" fill className="object-cover" />
+                    )
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-stone-500 text-xs">
-                      Default Image Active
+                      Default Media Active
                     </div>
                   )}
                 </div>
@@ -480,7 +495,7 @@ export default function AdminPage() {
                 <div className="md:col-span-7 space-y-4">
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-stone-300 uppercase tracking-wider">
-                      URL Gambar About
+                      URL Media About (Gambar / MP4)
                     </label>
                     <input
                       type="text"
@@ -494,10 +509,10 @@ export default function AdminPage() {
                   <div className="flex items-center space-x-3">
                     <label className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-stone-200 cursor-pointer flex items-center space-x-2 transition-colors">
                       <Upload className="w-4 h-4" />
-                      <span>{uploading ? "Mengunggah..." : "Unggah File Gambar"}</span>
+                      <span>{uploading ? "Mengunggah..." : "Unggah File (Gambar / MP4)"}</span>
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/*,video/*"
                         className="hidden"
                         onChange={async (e) => {
                           if (e.target.files?.[0]) {
@@ -659,7 +674,7 @@ export default function AdminPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-stone-300">Gambar Proyek</label>
+                <label className="text-xs font-semibold text-stone-300">Media Proyek (Gambar atau MP4)</label>
                 <div className="flex items-center space-x-3">
                   <input
                     type="text"
@@ -675,7 +690,7 @@ export default function AdminPage() {
                     <span>{uploading ? "..." : "Unggah"}</span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,video/*"
                       className="hidden"
                       onChange={async (e) => {
                         if (e.target.files?.[0]) {
@@ -691,7 +706,11 @@ export default function AdminPage() {
 
                 {formProject.image && (
                   <div className="relative h-32 w-full rounded-xl overflow-hidden border border-stone-800 mt-2">
-                    <Image src={formProject.image} alt="Preview" fill className="object-cover" />
+                    {isVideo(formProject.image) ? (
+                      <video src={formProject.image} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+                    ) : (
+                      <Image src={formProject.image} alt="Preview" fill className="object-cover" />
+                    )}
                   </div>
                 )}
               </div>
