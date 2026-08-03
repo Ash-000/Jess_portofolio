@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, MapPin, Globe, Send, MessageSquare, CheckCircle } from "lucide-react";
+import { Mail, MapPin, Globe, Send, MessageSquare, CheckCircle, Phone } from "lucide-react";
 import { Link001 } from "@/components/ui/skiper-ui/skiper40";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -18,6 +18,16 @@ export default function Contact() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
+
+    // Target WhatsApp Phone Number: +62 852-8098-3522 (clean: 6285280983522)
+    const phoneNumber = "6285280983522";
+
+    const waText = `Halo, saya *${formData.name}* (${formData.email})\n\n*Subjek/Topik*: ${formData.topic}\n\n*Pesan*:\n${formData.message}`;
+    const waUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(waText)}`;
+
+    // Open WhatsApp Web or Mobile App directly
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+
     setSubmitted(true);
     setTimeout(() => {
       setSubmitted(false);
@@ -34,11 +44,11 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 space-y-12">
         {/* Header */}
         <div className="space-y-4 max-w-3xl">
-          <div className="inline-flex items-center space-x-2 text-emerald-400 font-serif text-xl font-bold">
+          <div className="inline-flex items-center space-x-2 text-emerald-400 font-title text-xl font-bold">
             <span className="w-8 h-[2px] bg-emerald-400 inline-block" />
             <h2>{t.contact.badge}</h2>
           </div>
-          <h3 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-white">
+          <h3 className="font-title text-4xl sm:text-5xl font-bold tracking-tight text-white">
             {t.contact.title}
           </h3>
           <p className="text-stone-300 text-base sm:text-lg font-sans leading-relaxed">
@@ -51,6 +61,22 @@ export default function Contact() {
           {/* Left Contact Details */}
           <div className="lg:col-span-5 space-y-8">
             <div className="space-y-6">
+              {/* WhatsApp Item */}
+              <div className="flex items-start space-x-4 p-4 rounded-xl bg-stone-900/60 border border-stone-800/80">
+                <div className="p-3 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/50 shrink-0">
+                  <Phone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs uppercase tracking-widest text-stone-400 font-semibold">WhatsApp Direct</h4>
+                  <div className="mt-1">
+                    <Link001 href="https://wa.me/6285280983522" className="text-stone-100 font-medium text-sm sm:text-base">
+                      +62 852-8098-3522
+                    </Link001>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email Item */}
               <div className="flex items-start space-x-4 p-4 rounded-xl bg-stone-900/60 border border-stone-800/80">
                 <div className="p-3 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/50 shrink-0">
                   <Mail className="w-5 h-5" />
@@ -65,6 +91,7 @@ export default function Contact() {
                 </div>
               </div>
 
+              {/* Location Item */}
               <div className="flex items-start space-x-4 p-4 rounded-xl bg-stone-900/60 border border-stone-800/80">
                 <div className="p-3 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/50 shrink-0">
                   <MapPin className="w-5 h-5" />
@@ -77,6 +104,7 @@ export default function Contact() {
                 </div>
               </div>
 
+              {/* Network Item */}
               <div className="flex items-start space-x-4 p-4 rounded-xl bg-stone-900/60 border border-stone-800/80">
                 <div className="p-3 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/50 shrink-0">
                   <Globe className="w-5 h-5" />
@@ -106,7 +134,7 @@ export default function Contact() {
             {submitted ? (
               <div className="py-16 text-center space-y-4 animate-in fade-in zoom-in-95 duration-400">
                 <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto animate-bounce" />
-                <h3 className="font-serif text-2xl font-bold">{t.contact.form.successTitle}</h3>
+                <h3 className="font-title text-2xl font-bold">{t.contact.form.successTitle}</h3>
                 <p className="text-stone-600 dark:text-stone-300 text-sm max-w-sm mx-auto">
                   {t.contact.form.successMessage}
                 </p>
@@ -186,17 +214,16 @@ export default function Contact() {
         </div>
       </div>
 
-      {/* Floating Action Button */}
-      <button
-        onClick={() => {
-          const el = document.getElementById("contact");
-          el?.scrollIntoView({ behavior: "smooth" });
-        }}
+      {/* Floating Action Button (Opens WhatsApp Direct) */}
+      <a
+        href="https://wa.me/6285280983522"
+        target="_blank"
+        rel="noopener noreferrer"
         className="fixed bottom-6 right-6 p-4 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white shadow-2xl z-40 transition-all hover:scale-110 active:scale-95 flex items-center justify-center"
-        aria-label="Contact Us"
+        aria-label="Contact Us via WhatsApp"
       >
         <MessageSquare className="w-6 h-6" />
-      </button>
+      </a>
     </section>
   );
 }
