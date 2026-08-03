@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, Leaf } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -33,13 +33,6 @@ export default function Hero() {
         ".gsap-hero-image",
         { opacity: 0, scale: 0.95, filter: "blur(10px)", y: 20 },
         { opacity: 1, scale: 1, filter: "blur(0px)", y: 0, duration: 1.1, ease: "power3.out" }
-      );
-
-      tl.fromTo(
-        ".gsap-hero-badge",
-        { clipPath: "inset(0 100% 0 0)", opacity: 0 },
-        { clipPath: "inset(0 0% 0 0)", opacity: 1, duration: 0.8 },
-        "-=0.6"
       );
 
       tl.fromTo(
@@ -125,12 +118,6 @@ export default function Hero() {
 
         {/* BOTTOM SECTION: Text Content Centered Below Video */}
         <div className="max-w-3xl mx-auto text-center space-y-6">
-          {/* Badge */}
-          <div className="gsap-hero-badge inline-flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-emerald-100/80 dark:bg-emerald-950/80 border border-emerald-300/80 dark:border-emerald-700/50 text-emerald-800 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
-            <Leaf className="w-3.5 h-3.5 animate-pulse" />
-            <span>{t.hero.badge}</span>
-          </div>
-
           {/* Title */}
           <h1 className="font-title text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-forest-900 dark:text-cream-50 leading-[1.25] py-1.5 -my-1.5 flex flex-wrap justify-center gap-x-3 gap-y-1">
             {titleWords.map((word: string, idx: number) => (
