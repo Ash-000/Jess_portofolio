@@ -31,8 +31,8 @@ export default function Hero() {
 
       tl.fromTo(
         ".gsap-hero-image",
-        { opacity: 0, scale: 0.95, filter: "blur(10px)", y: 20 },
-        { opacity: 1, scale: 1, filter: "blur(0px)", y: 0, duration: 1.1, ease: "power3.out" }
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 1, ease: "power3.out", clearProps: "transform,filter" }
       );
 
       tl.fromTo(
@@ -57,8 +57,8 @@ export default function Hero() {
 
       tl.fromTo(
         ".gsap-hero-desc",
-        { opacity: 0, y: 20, filter: "blur(6px)" },
-        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.8 },
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.8 },
         "-=0.5"
       );
 
@@ -86,9 +86,9 @@ export default function Hero() {
       <div className="orb w-96 h-96 bg-stone-300/20 dark:bg-emerald-950/20 bottom-10 right-10" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-12 relative z-10">
-        {/* TOP SECTION: Video / Media Showcase (100% Bright & Unobstructed) */}
+        {/* TOP SECTION: Video / Media Showcase (100% Bright, Crisp & Continuous) */}
         <div className="gsap-hero-image w-full max-w-5xl mx-auto">
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl group border border-stone-200/80 dark:border-stone-800/80">
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-stone-200/80 dark:border-stone-800/80 bg-black">
             <div className="relative z-10 rounded-3xl overflow-hidden">
               {isVideo ? (
                 <video
@@ -98,7 +98,8 @@ export default function Hero() {
                   muted
                   playsInline
                   preload="auto"
-                  className="w-full h-[360px] sm:h-[460px] lg:h-[540px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                  onEnded={(e) => e.currentTarget.play()}
+                  className="w-full h-[360px] sm:h-[460px] lg:h-[540px] object-cover"
                 >
                   <source src={heroMedia} type="video/mp4" />
                   Your browser does not support the video tag.
@@ -109,7 +110,7 @@ export default function Hero() {
                   alt="Sustainable Agriculture Research"
                   width={1200}
                   height={675}
-                  className="w-full h-[360px] sm:h-[460px] lg:h-[540px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
+                  className="w-full h-[360px] sm:h-[460px] lg:h-[540px] object-cover"
                   priority
                 />
               )}
