@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+import sharp from "sharp";
 
 export async function POST(request: Request) {
   try {
@@ -18,17 +19,48 @@ export async function POST(request: Request) {
     const uploadsDir = path.join(process.cwd(), "public", "uploads");
     await mkdir(uploadsDir, { recursive: true });
 
-    // Generate unique filename
-    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const filename = `${Date.now()}_${safeName}`;
-    const filePath = path.join(uploadsDir, filename);
+    const safeBaseName = file.name
+      .replace(/\.[^/.]+$/, "")
+      .replace(/[^a-zA-Z0-9.-]/g, "_");
 
-    await writeFile(filePath, buffer);
+    let filename = "";
+    let finalBuffer: Buffer = buffer;
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/") || file.name.endsWith(".mp4") || file.name.endsWith(".webm");
+
+    if (isImage) {
+      // Auto Compress Image with Sharp to WebP
+      filename = `${Date.now()}_${safeBaseName}.webp`;
+      finalBuffer = await sharp(buffer)
+        .resize({ width: 1920, height: 1920, fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 82, effort: 4 })
+        .toBuffer();
+    } else {
+      // Video or other file format
+      const ext = path.extname(file.name) || (isVideo ? ".mp4" : "");
+      filename = `${Date.now()}_${safeBaseName}${ext}`;
+    }
+
+    const filePath = path.join(uploadsDir, filename);
+    await writeFile(filePath, finalBuffer);
 
     const publicUrl = `/uploads/${filename}`;
-    return NextResponse.json({ url: publicUrl, success: true });
+    const originalSizeKb = (buffer.length / 1024).toFixed(1);
+    const compressedSizeKb = (finalBuffer.length / 1024).toFixed(1);
+
+    return NextResponse.json({
+      url: publicUrl,
+      success: true,
+      stats: {
+        originalKb: originalSizeKb,
+        compressedKb: compressedSizeKb,
+        savings: isImage
+          ? `${Math.max(0, Math.round((1 - finalBuffer.length / buffer.length) * 100))}%`
+          : "0%",
+      },
+    });
   } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Failed to upload image" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to process & upload file" }, { status: 500 });
   }
 }

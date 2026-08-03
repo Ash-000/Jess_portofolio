@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Instagram, Mail } from "lucide-react";
+import { ArrowUp, Instagram, Mail, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Footer() {
@@ -13,7 +13,7 @@ export default function Footer() {
   return (
     <footer className="py-12 bg-stone-100 dark:bg-stone-950 border-t border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 relative">
       <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-8">
-        {/* Centered Controls: Instagram, Email, and Back-to-Top */}
+        {/* Centered Controls: Instagram, Email, Admin CMS, and Back-to-Top */}
         <div className="flex items-center justify-center space-x-4">
           {/* Instagram Link */}
           <a
@@ -35,6 +35,16 @@ export default function Footer() {
             <Mail className="w-5 h-5" />
           </a>
 
+          {/* Admin CMS Access Link */}
+          <a
+            href="/admin"
+            className="p-3.5 rounded-full bg-stone-200/60 dark:bg-stone-900 border border-stone-300/60 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm"
+            title="Akses Dashboard Admin CMS"
+            aria-label="Admin Dashboard"
+          >
+            <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          </a>
+
           {/* Back to Top Button */}
           <button
             onClick={scrollToTop}
@@ -45,9 +55,15 @@ export default function Footer() {
           </button>
         </div>
 
-        {/* Bottom Row: Centered Copyright */}
-        <div className="pt-6 border-t border-stone-200/60 dark:border-stone-900 text-center text-xs text-stone-500 font-medium">
-          © {new Date().getFullYear()} {t.footer.rights}
+        {/* Bottom Row: Centered Copyright & Admin quick link */}
+        <div className="pt-6 border-t border-stone-200/60 dark:border-stone-900 text-center text-xs text-stone-500 font-medium flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span>© {new Date().getFullYear()} {t.footer.rights}</span>
+          <a
+            href="/admin"
+            className="text-[11px] text-stone-400 hover:text-emerald-500 underline transition-colors"
+          >
+            CMS Admin Dashboard 🔑
+          </a>
         </div>
       </div>
     </footer>
