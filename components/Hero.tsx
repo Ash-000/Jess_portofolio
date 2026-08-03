@@ -86,21 +86,23 @@ export default function Hero() {
       <div className="orb w-96 h-96 bg-stone-300/20 dark:bg-emerald-950/20 bottom-10 right-10" />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-12 relative z-10">
-        {/* TOP SECTION: Video / Media Showcase */}
+        {/* TOP SECTION: Video / Media Showcase (100% Bright & Unobstructed) */}
         <div className="gsap-hero-image w-full max-w-5xl mx-auto">
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl group border border-stone-200/80 dark:border-stone-800/80 bg-stone-950">
-            <div className="absolute -inset-[1px] bg-gradient-to-br from-emerald-500/30 via-transparent to-emerald-500/20 rounded-3xl z-0" />
-
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl group border border-stone-200/80 dark:border-stone-800/80">
             <div className="relative z-10 rounded-3xl overflow-hidden">
               {isVideo ? (
                 <video
-                  src={heroMedia}
+                  key={heroMedia}
                   autoPlay
                   loop
                   muted
                   playsInline
+                  preload="auto"
                   className="w-full h-[360px] sm:h-[460px] lg:h-[540px] object-cover group-hover:scale-105 transition-transform duration-[1.2s] ease-out"
-                />
+                >
+                  <source src={heroMedia} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               ) : (
                 <Image
                   src={heroMedia}
@@ -111,7 +113,6 @@ export default function Hero() {
                   priority
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
         </div>
