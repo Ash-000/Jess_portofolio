@@ -104,7 +104,7 @@ export default function Navbar() {
         {/* Brand Logo */}
         <a href="#home" className="group flex items-center space-x-2">
           <span className="font-serif text-2xl font-bold tracking-tight text-forest-900 dark:text-cream-50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-            Stewardship <span className="font-sans font-light text-emerald-700 dark:text-emerald-400">Journal</span>
+            Portofolio <span className="font-sans font-medium text-emerald-700 dark:text-emerald-400">Ares</span>
           </span>
         </a>
 
