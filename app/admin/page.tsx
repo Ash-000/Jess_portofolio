@@ -208,7 +208,7 @@ export default function AdminPage() {
             </a>
             <div>
               <h1 className="font-title text-xl font-bold text-white flex items-center gap-2">
-                <span>CMS Dashboard Database</span>
+                <span>Ares Panel</span>
                 <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase">
                   Live DB
                 </span>

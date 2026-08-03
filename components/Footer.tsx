@@ -52,7 +52,7 @@ export default function Footer() {
             href="/admin"
             className="text-[11px] text-stone-400 hover:text-emerald-500 underline transition-colors"
           >
-            CMS Admin Dashboard 🔑
+            Ares Panel 🔑
           </a>
         </div>
       </div>
