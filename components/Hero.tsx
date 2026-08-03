@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { ArrowRight, Leaf } from "lucide-react";
 import gsap from "gsap";
@@ -10,6 +10,20 @@ import { useLanguage } from "@/context/LanguageContext";
 export default function Hero() {
   const { t, lang } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [heroImage, setHeroImage] = useState<string>(
+    "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?q=80&w=1000&auto=format&fit=crop"
+  );
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.settings?.hero_image) {
+          setHeroImage(data.settings.hero_image);
+        }
+      })
+      .catch((err) => console.error("Error fetching hero image setting:", err));
+  }, []);
 
   useGSAP(
     () => {
@@ -52,40 +66,17 @@ export default function Hero() {
 
       tl.fromTo(
         ".gsap-hero-btn",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.6, stagger: 0.12 },
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.6, stagger: 0.1 },
         "-=0.4"
       );
 
       tl.fromTo(
         ".gsap-hero-image",
-        { clipPath: "inset(8% 8% 8% 8%)", opacity: 0, scale: 1.05 },
-        {
-          clipPath: "inset(0% 0% 0% 0%)",
-          opacity: 1,
-          scale: 1,
-          duration: 1.2,
-          ease: "power3.out",
-        },
+        { opacity: 0, scale: 0.95, filter: "blur(10px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 1.2, ease: "power3.out" },
         "-=0.8"
       );
-
-      tl.fromTo(
-        ".gsap-hero-float-badge",
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5 },
-        "-=0.3"
-      );
-
-      gsap.to(".gsap-particle", {
-        y: "random(-30, 30)",
-        x: "random(-20, 20)",
-        duration: "random(3, 5)",
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut",
-        stagger: { each: 0.5, from: "random" },
-      });
     },
     { scope: containerRef, dependencies: [lang] }
   );
@@ -96,41 +87,32 @@ export default function Hero() {
     <section
       id="home"
       ref={containerRef}
-      className="relative pt-32 pb-20 md:pt-44 md:pb-32 px-6 md:px-12 max-w-7xl mx-auto overflow-hidden"
+      className="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden bg-cream-50 text-stone-900 dark:bg-[#0C110E] dark:text-cream-50 transition-colors duration-500"
     >
-      {/* Ambient particles */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className="gsap-particle absolute rounded-full bg-emerald-500/10 dark:bg-emerald-400/10"
-            style={{
-              width: `${8 + i * 6}px`,
-              height: `${8 + i * 6}px`,
-              top: `${15 + i * 20}%`,
-              left: `${10 + i * 20}%`,
-            }}
-          />
-        ))}
-      </div>
+      {/* Background Orbs */}
+      <div className="orb w-96 h-96 bg-emerald-300/15 dark:bg-emerald-900/15 -top-20 -left-20" />
+      <div className="orb w-96 h-96 bg-stone-300/20 dark:bg-emerald-950/20 bottom-10 right-10" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
-        {/* Left Text Column */}
+      <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10">
+        {/* Left Column: Text Content */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="gsap-hero-badge inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-300/50 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider">
-            <Leaf className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+          {/* Clip Path Revealing Badge */}
+          <div className="gsap-hero-badge inline-flex items-center space-x-2.5 px-4 py-1.5 rounded-full bg-emerald-100/80 dark:bg-emerald-950/80 border border-emerald-300/80 dark:border-emerald-700/50 text-emerald-800 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider backdrop-blur-sm">
+            <Leaf className="w-3.5 h-3.5 animate-pulse" />
             <span>{t.hero.badge}</span>
           </div>
 
-          {/* Word-by-word title reveal with comfortable padding and line-height */}
-          <h1
-            key={lang}
-            className="font-title text-4xl sm:text-5xl md:text-6xl lg:text-[3.5rem] font-bold tracking-tight text-stone-900 dark:text-cream-50 leading-[1.25]"
-            style={{ perspective: "600px" }}
-          >
-            {titleWords.map((word, i) => (
-              <span key={i} className="inline-block overflow-hidden py-1.5 -my-1.5 mr-[0.3em] last:mr-0 align-bottom">
-                <span className="gsap-word-inner inline-block will-change-transform py-0.5">
+          {/* GSAP Word-by-Word Reveal Title */}
+          <h1 className="font-title text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-forest-900 dark:text-cream-50 leading-[1.25] py-1.5 -my-1.5 flex flex-wrap gap-x-3 gap-y-1">
+            {titleWords.map((word: string, idx: number) => (
+              <span key={idx} className="inline-block overflow-hidden py-1 -my-1">
+                <span
+                  className={`gsap-word-inner inline-block ${
+                    idx >= Math.floor(titleWords.length / 2)
+                      ? "text-emerald-700 dark:text-emerald-400 font-extrabold"
+                      : ""
+                  }`}
+                >
                   {word}
                 </span>
               </span>
@@ -170,7 +152,7 @@ export default function Hero() {
 
             <div className="relative z-10 rounded-2xl overflow-hidden">
               <Image
-                src="https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?q=80&w=1000&auto=format&fit=crop"
+                src={heroImage}
                 alt="Sustainable Agriculture Research"
                 width={600}
                 height={700}
@@ -178,16 +160,21 @@ export default function Hero() {
                 priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            </div>
 
-              <div className="gsap-hero-float-badge absolute bottom-6 left-6 right-6 p-4 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
-                <div className="flex items-center space-x-3">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-                  </span>
-                  <p className="text-xs font-medium text-white/90">
+            {/* Floating Glassmorphism Metric Card */}
+            <div className="absolute bottom-6 left-6 right-6 z-20 bg-stone-900/80 backdrop-blur-md border border-stone-700/60 p-4 rounded-xl text-cream-50 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs uppercase tracking-wider text-emerald-400 font-semibold">
                     {t.hero.liveBadge}
+                  </h4>
+                  <p className="font-serif text-sm font-medium mt-0.5 text-stone-200">
+                    Stewardship Journal & Botani Seed
                   </p>
+                </div>
+                <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xs">
+                  85%
                 </div>
               </div>
             </div>

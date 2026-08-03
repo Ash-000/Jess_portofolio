@@ -1,0 +1,31 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Project {
+  id            Int      @id @default(autoincrement())
+  titleEn       String
+  titleId       String
+  category      String
+  statusEn      String
+  statusId      String
+  descriptionEn String
+  descriptionId String
+  metaEn        String
+  metaId        String
+  tags          String
+  image         String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SiteSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
