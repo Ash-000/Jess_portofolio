@@ -131,7 +131,7 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Right Controls & CTA */}
+        {/* Right Controls */}
         <div className="hidden md:flex items-center space-x-3">
           {/* Language Switcher */}
           <button
@@ -157,14 +157,6 @@ export default function Navbar() {
               )}
             </div>
           </button>
-
-          {/* Connect Button */}
-          <a
-            href="#contact"
-            className="px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-widest bg-forest-900 text-cream-50 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
-          >
-            {t.nav.connect}
-          </a>
         </div>
 
         {/* Mobile Controls */}
@@ -251,23 +243,6 @@ export default function Navbar() {
                 </a>
               );
             })}
-          </div>
-
-          <div
-            style={{
-              transitionDelay: isOpen ? `${navLinks.length * 50}ms` : "0ms",
-            }}
-            className={`pt-2 transition-all duration-300 ${
-              isOpen ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
-            }`}
-          >
-            <a
-              href="#contact"
-              onClick={() => handleLinkClick("contact")}
-              className="block text-center w-full py-3.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-forest-900 text-cream-50 dark:bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md active:scale-95"
-            >
-              {t.nav.connect}
-            </a>
           </div>
         </div>
       )}
