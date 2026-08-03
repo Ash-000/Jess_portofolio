@@ -14,6 +14,13 @@ import {
   Save,
   Loader2,
   Sparkles,
+  Lock,
+  LogOut,
+  Key,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  ShieldCheck,
 } from "lucide-react";
 
 interface ProjectItem {
@@ -32,6 +39,15 @@ interface ProjectItem {
 }
 
 export default function AdminPage() {
+  // Auth State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
+  const [loginEmail, setLoginEmail] = useState<string>("");
+  const [loginPassword, setLoginPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [loginError, setLoginError] = useState<string>("");
+
+  // CMS State
   const [activeTab, setActiveTab] = useState<"projects" | "settings">("projects");
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [settings, setSettings] = useState<{ hero_image?: string; about_image?: string }>({});
@@ -58,7 +74,12 @@ export default function AdminPage() {
   });
 
   useEffect(() => {
-    fetchData();
+    const authStored = localStorage.getItem("ares_authenticated");
+    if (authStored === "true") {
+      setIsAuthenticated(true);
+      fetchData();
+    }
+    setCheckingAuth(false);
   }, []);
 
   const fetchData = async () => {
@@ -78,69 +99,110 @@ export default function AdminPage() {
     }
   };
 
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+
+    const targetEmail = "ares@gmail.com";
+    const targetPw = "ares123";
+
+    if (
+      loginEmail.trim().toLowerCase() === targetEmail &&
+      loginPassword === targetPw
+    ) {
+      setIsAuthenticated(true);
+      localStorage.setItem("ares_authenticated", "true");
+      showNotify("Verifikasi berhasil! Selamat datang di Ares Panel.");
+      fetchData();
+    } else {
+      setLoginError("Email atau Password tidak sesuai! Silakan periksa kembali.");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem("ares_authenticated");
+    setLoginEmail("");
+    setLoginPassword("");
+  };
+
   const showNotify = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3500);
   };
 
-  // Upload file helper (supports both image and MP4 video)
-  const handleFileUpload = async (file: File): Promise<string | null> => {
+  // Image / Video Upload Handler with Stats
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    onSuccess: (url: string) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
     try {
-      const data = new FormData();
-      data.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: data }).then((r) => r.json());
-      if (res.url) {
-        return res.url;
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        onSuccess(data.url);
+        const savedText = data.stats?.savings ? ` (Kompresi ${data.stats.savings} lebih ringan)` : "";
+        showNotify(`Media berhasil diunggah dan di-compress!${savedText}`);
+      } else {
+        alert("Gagal mengunggah file.");
       }
-      return null;
     } catch (err) {
       console.error("Upload error:", err);
-      return null;
+      alert("Terjadi kesalahan saat mengunggah.");
     } finally {
       setUploading(false);
     }
   };
 
-  // Open Add Project Modal
+  // Open Modal Add Project
   const handleOpenAdd = () => {
     setEditingId(null);
     setFormProject({
       titleEn: "",
       titleId: "",
-      category: "Agronomy Research",
-      statusEn: "Active Trial",
-      statusId: "Uji Coba Aktif",
+      category: "Agronomy",
+      statusEn: "Published Data",
+      statusId: "Data Dipublikasi",
       descriptionEn: "",
       descriptionId: "",
       metaEn: "",
       metaId: "",
-      tags: "",
-      image: "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=1200&auto=format&fit=crop",
+      tags: "Research, Innovation",
+      image: "/uploads/clip_ipb.mp4",
     });
     setIsModalOpen(true);
   };
 
-  // Open Edit Project Modal
-  const handleOpenEdit = (proj: ProjectItem) => {
-    if (!proj.id) return;
-    setEditingId(proj.id);
-    setFormProject({ ...proj });
+  // Open Modal Edit Project
+  const handleOpenEdit = (item: ProjectItem) => {
+    setEditingId(item.id || null);
+    setFormProject({ ...item });
     setIsModalOpen(true);
   };
 
-  // Save Project (Create or Update)
+  // Save Project (Create / Update)
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
       const method = editingId ? "PUT" : "POST";
-      const payload = editingId ? { id: editingId, ...formProject } : formProject;
+      const body = editingId ? { ...formProject, id: editingId } : formProject;
 
       const res = await fetch("/api/projects", {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
       }).then((r) => r.json());
 
       if (res.success) {
@@ -193,6 +255,110 @@ export default function AdminPage() {
   const isVideo = (url?: string) =>
     url ? url.toLowerCase().endsWith(".mp4") || url.toLowerCase().endsWith(".webm") : false;
 
+  // 1. Initial Checking Screen
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-[#0C110E] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated LOGIN GATE Screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#0C110E] text-stone-100 font-sans flex flex-col justify-center items-center px-6 relative overflow-hidden selection:bg-emerald-500 selection:text-white">
+        {/* Ambient Glows */}
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-emerald-700/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="w-full max-w-md bg-stone-950/90 border border-stone-800/80 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative z-10 space-y-6">
+          {/* Header */}
+          <div className="text-center space-y-3">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 shadow-inner">
+              <ShieldCheck className="w-7 h-7" />
+            </div>
+            <h1 className="font-title text-2xl font-bold tracking-tight text-white">
+              Ares Panel Verification
+            </h1>
+            <p className="text-xs text-stone-400">
+              Masukkan Email dan Password untuk mengakses Dashboard
+            </p>
+          </div>
+
+          {/* Error Alert */}
+          {loginError && (
+            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center space-x-2.5 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{loginError}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-stone-300 mb-1.5 uppercase tracking-wider">
+                Email Access
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  required
+                  placeholder="Ares@gmail.com"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-stone-900 border border-stone-800 focus:border-emerald-500 focus:outline-none text-sm text-white placeholder-stone-600 transition-colors"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-stone-300 mb-1.5 uppercase tracking-wider">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="••••••••"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-stone-900 border border-stone-800 focus:border-emerald-500 focus:outline-none text-sm text-white placeholder-stone-600 pr-11 transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-500 hover:text-stone-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs uppercase tracking-widest transition-all shadow-lg hover:shadow-emerald-900/30 active:scale-[0.99] mt-2 flex items-center justify-center space-x-2"
+            >
+              <Key className="w-4 h-4" />
+              <span>Verifikasi & Masuk Panel</span>
+            </button>
+          </form>
+
+          <div className="pt-4 border-t border-stone-900 text-center">
+            <a
+              href="/"
+              className="text-xs text-stone-400 hover:text-emerald-400 transition-colors inline-flex items-center space-x-1.5"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Kembali ke Website Utama</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Authenticated DASHBOARD Screen
   return (
     <div className="min-h-screen bg-[#0C110E] text-stone-100 font-sans selection:bg-emerald-500 selection:text-white pb-20">
       {/* Top Header */}
@@ -217,13 +383,24 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <a
-            href="/"
-            target="_blank"
-            className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold uppercase tracking-wider transition-all"
-          >
-            Lihat Website Utama ↗
-          </a>
+          <div className="flex items-center space-x-3">
+            <a
+              href="/"
+              target="_blank"
+              className="px-4 py-2 rounded-full bg-stone-900 border border-stone-800 hover:bg-stone-800 text-stone-200 text-xs font-semibold uppercase tracking-wider transition-all"
+            >
+              Lihat Website ↗
+            </a>
+
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 text-xs font-semibold uppercase tracking-wider transition-all flex items-center space-x-1.5"
+              title="Keluar dari Panel"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Keluar</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -238,46 +415,49 @@ export default function AdminPage() {
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         {/* Navigation Tabs */}
-        <div className="flex border-b border-stone-800 space-x-8">
+        <div className="flex items-center space-x-3 border-b border-stone-800/80 pb-4">
           <button
             onClick={() => setActiveTab("projects")}
-            className={`pb-4 font-title text-sm font-bold flex items-center space-x-2 border-b-2 transition-colors ${
+            className={`px-5 py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider transition-all flex items-center space-x-2 ${
               activeTab === "projects"
-                ? "border-emerald-500 text-emerald-400"
-                : "border-transparent text-stone-400 hover:text-stone-200"
+                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/30"
+                : "bg-stone-900/60 text-stone-400 hover:text-white border border-stone-800"
             }`}
           >
             <FolderOpen className="w-4 h-4" />
-            <span>Kelola Proyek ({projects.length})</span>
+            <span>Kelola Riset & Proyek</span>
           </button>
 
           <button
             onClick={() => setActiveTab("settings")}
-            className={`pb-4 font-title text-sm font-bold flex items-center space-x-2 border-b-2 transition-colors ${
+            className={`px-5 py-2.5 rounded-xl font-semibold text-xs uppercase tracking-wider transition-all flex items-center space-x-2 ${
               activeTab === "settings"
-                ? "border-emerald-500 text-emerald-400"
-                : "border-transparent text-stone-400 hover:text-stone-200"
+                ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/30"
+                : "bg-stone-900/60 text-stone-400 hover:text-white border border-stone-800"
             }`}
           >
             <ImageIcon className="w-4 h-4" />
-            <span>Ubah Media Landing Page (Gambar / Video MP4)</span>
+            <span>Ubah Media Landing Page</span>
           </button>
         </div>
 
-        {/* Tab 1: Manage Projects */}
+        {/* TAB 1: Projects Management */}
         {activeTab === "projects" && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-stone-950/60 p-6 rounded-2xl border border-stone-800/80">
               <div>
-                <h2 className="text-lg font-bold text-white">Daftar Proyek di Database</h2>
-                <p className="text-xs text-stone-400">
-                  Proyek yang ada di sini akan langsung tampil pada section &ldquo;Proyek Riset Utama&rdquo; di Landing Page.
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <span>Daftar Proyek & Riset</span>
+                  <span className="text-xs font-normal text-stone-400">({projects.length} Total)</span>
+                </h2>
+                <p className="text-xs text-stone-400 mt-1">
+                  Seluruh perubahan data proyek di sini akan langsung tampil pada landing page utama.
                 </p>
               </div>
 
               <button
                 onClick={handleOpenAdd}
-                className="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95"
+                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs uppercase tracking-widest transition-all shadow-md flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Proyek Baru</span>
@@ -285,9 +465,9 @@ export default function AdminPage() {
             </div>
 
             {loading ? (
-              <div className="py-20 text-center text-stone-400 space-y-3">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-500" />
-                <p className="text-sm">Memuat data dari SQLite database...</p>
+              <div className="py-20 text-center space-y-3">
+                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin mx-auto" />
+                <p className="text-stone-400 text-sm">Memuat data proyek...</p>
               </div>
             ) : projects.length === 0 ? (
               <div className="py-16 text-center bg-stone-900/50 rounded-2xl border border-stone-800 space-y-3">
@@ -305,28 +485,29 @@ export default function AdminPage() {
                 {projects.map((proj) => (
                   <div
                     key={proj.id}
-                    className="bg-stone-900/80 border border-stone-800 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between group hover:border-emerald-800/80 transition-all"
+                    className="bg-stone-950 border border-stone-800/80 rounded-2xl overflow-hidden flex flex-col justify-between group hover:border-emerald-500/50 transition-all duration-300 shadow-lg"
                   >
                     <div>
-                      {/* Project Image or Video */}
-                      <div className="relative h-44 w-full bg-stone-950">
-                        {proj.image ? (
-                          isVideo(proj.image) ? (
-                            <video src={proj.image} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                          ) : (
-                            <Image
-                              src={proj.image}
-                              alt={proj.titleEn}
-                              fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          )
+                      {/* Media Header */}
+                      <div className="relative h-44 w-full bg-stone-900 overflow-hidden">
+                        {isVideo(proj.image) ? (
+                          <video
+                            src={proj.image}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-stone-600 text-xs">
-                            Tidak Ada Media
-                          </div>
+                          <Image
+                            src={proj.image || "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?q=80&w=600"}
+                            alt={proj.titleId}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
                         )}
-                        <div className="absolute top-3 left-3 bg-stone-950/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold text-emerald-400 border border-emerald-800/50">
+                        <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-stone-950/80 backdrop-blur-md text-[10px] font-semibold uppercase tracking-wider text-emerald-400 border border-emerald-500/30">
                           {proj.category}
                         </div>
                       </div>
@@ -334,46 +515,34 @@ export default function AdminPage() {
                       {/* Content */}
                       <div className="p-5 space-y-3">
                         <div className="space-y-1">
-                          <h3 className="font-title text-base font-bold text-white line-clamp-1">
-                            {proj.titleId} / {proj.titleEn}
-                          </h3>
-                          <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed">
-                            {proj.descriptionId || proj.descriptionEn}
-                          </p>
+                          <h3 className="font-bold text-white text-base line-clamp-1">{proj.titleId}</h3>
+                          <p className="text-xs text-stone-400 font-serif italic line-clamp-1">{proj.titleEn}</p>
                         </div>
 
-                        {proj.tags && (
-                          <div className="flex flex-wrap gap-1.5 pt-1">
-                            {proj.tags.split(",").map((tag, idx) => (
-                              <span
-                                key={idx}
-                                className="px-2 py-0.5 rounded-md bg-stone-800 text-[10px] text-stone-300 font-medium"
-                              >
-                                {tag.trim()}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed">
+                          {proj.descriptionId}
+                        </p>
                       </div>
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="p-4 border-t border-stone-800/80 bg-stone-950/40 flex items-center justify-between">
-                      <span className="text-[10px] text-stone-500 font-mono">ID: #{proj.id}</span>
+                    <div className="px-5 py-4 bg-stone-900/50 border-t border-stone-800/60 flex items-center justify-between">
+                      <span className="text-[11px] text-stone-400 font-mono">{proj.metaId}</span>
+
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleOpenEdit(proj)}
-                          className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-semibold flex items-center space-x-1 transition-colors"
+                          className="p-2 rounded-lg bg-stone-800 hover:bg-emerald-600 text-stone-300 hover:text-white transition-colors"
+                          title="Edit Proyek"
                         >
-                          <Edit className="w-3.5 h-3.5" />
-                          <span>Edit</span>
+                          <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteProject(proj.id!)}
-                          className="px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 text-rose-300 text-xs font-semibold flex items-center space-x-1 border border-rose-800/50 transition-colors"
+                          onClick={() => proj.id && handleDeleteProject(proj.id)}
+                          className="p-2 rounded-lg bg-stone-800 hover:bg-red-600 text-stone-300 hover:text-white transition-colors"
+                          title="Hapus Proyek"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Hapus</span>
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -384,351 +553,267 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Tab 2: Landing Page Images Settings */}
+        {/* TAB 2: Site Media Settings */}
         {activeTab === "settings" && (
-          <div className="max-w-4xl space-y-8">
-            <div>
-              <h2 className="text-lg font-bold text-white">Ubah Media Landing Page (Gambar atau Video MP4)</h2>
+          <div className="space-y-6 max-w-4xl">
+            <div className="bg-stone-950/60 p-6 rounded-2xl border border-stone-800/80 space-y-1">
+              <h2 className="text-lg font-bold text-white">Ubah Media Landing Page</h2>
               <p className="text-xs text-stone-400">
-                Unggah file gambar/video (MP4) dari komputer Anda atau masukkan URL media secara langsung.
+                Ganti gambar atau video MP4 yang tampil di Hero Section utama portofolio.
               </p>
             </div>
 
-            {/* Hero Media Setting */}
-            <div className="p-6 bg-stone-900/80 border border-stone-800 rounded-2xl space-y-5">
+            {/* Hero Media Card */}
+            <div className="bg-stone-950 border border-stone-800/80 p-6 rounded-2xl space-y-5">
               <div className="flex items-center justify-between">
-                <h3 className="font-title text-base font-bold text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span>Media Hero Section (Gambar / Video MP4)</span>
-                </h3>
+                <div>
+                  <h3 className="font-bold text-white text-sm">Media Utama Hero Section</h3>
+                  <p className="text-xs text-stone-400">Tampilan media besar paling atas landing page (Mendukung JPG, PNG, & MP4)</p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                  Hero Showcase
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                {/* Media Preview */}
-                <div className="md:col-span-5 relative h-48 w-full bg-stone-950 rounded-xl overflow-hidden border border-stone-800">
-                  {settings.hero_image ? (
-                    isVideo(settings.hero_image) ? (
-                      <video src={settings.hero_image} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                    ) : (
-                      <Image src={settings.hero_image} alt="Hero Preview" fill className="object-cover" />
-                    )
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-stone-500 text-xs">
-                      Default Media Active
-                    </div>
-                  )}
-                </div>
+              {/* Preview */}
+              <div className="relative h-64 w-full bg-stone-900 rounded-xl overflow-hidden border border-stone-800">
+                {isVideo(settings.hero_image || "/uploads/clip_ipb.mp4") ? (
+                  <video
+                    src={settings.hero_image || "/uploads/clip_ipb.mp4"}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={settings.hero_image || "https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?q=80&w=1000"}
+                    alt="Hero Preview"
+                    fill
+                    className="object-cover"
+                  />
+                )}
+              </div>
 
-                {/* Input & Upload */}
-                <div className="md:col-span-7 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-stone-300 uppercase tracking-wider">
-                      URL Gambar / Video Hero (MP4)
-                    </label>
+              {/* Upload Input & URL input */}
+              <div className="space-y-3 pt-2">
+                <label className="block text-xs font-semibold text-stone-300 uppercase tracking-wider">
+                  Unggah File Baru (Otomatis Di-Compress)
+                </label>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <label className="cursor-pointer px-5 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-white text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-2 transition-all">
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin text-emerald-400" /> : <Upload className="w-4 h-4 text-emerald-400" />}
+                    <span>{uploading ? "Mengunggah & Compress..." : "Pilih Foto / Video MP4"}</span>
                     <input
-                      type="text"
-                      value={settings.hero_image || ""}
-                      onChange={(e) => setSettings({ ...settings, hero_image: e.target.value })}
-                      placeholder="https://... atau /uploads/clip_ipb.mp4"
-                      className="w-full px-4 py-2.5 rounded-xl bg-stone-950 border border-stone-800 text-sm text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      type="file"
+                      accept="image/*,video/*"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) =>
+                        handleFileUpload(e, (url) => {
+                          setSettings((prev) => ({ ...prev, hero_image: url }));
+                        })
+                      }
                     />
-                  </div>
+                  </label>
 
-                  <div className="flex items-center space-x-3">
-                    <label className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-stone-200 cursor-pointer flex items-center space-x-2 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span>{uploading ? "Mengunggah..." : "Unggah File (Gambar / MP4)"}</span>
-                      <input
-                        type="file"
-                        accept="image/*,video/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          if (e.target.files?.[0]) {
-                            const url = await handleFileUpload(e.target.files[0]);
-                            if (url) {
-                              setSettings({ ...settings, hero_image: url });
-                            }
-                          }
-                        }}
-                      />
-                    </label>
-
-                    <button
-                      onClick={() => handleSaveSettings("hero_image", settings.hero_image || "")}
-                      disabled={saving}
-                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all shadow-md"
-                    >
-                      <Save className="w-3.5 h-3.5" />
-                      <span>Simpan Perubahan</span>
-                    </button>
-                  </div>
+                  <input
+                    type="text"
+                    value={settings.hero_image || "/uploads/clip_ipb.mp4"}
+                    onChange={(e) => setSettings({ ...settings, hero_image: e.target.value })}
+                    placeholder="/uploads/clip_ipb.mp4 atau URL media"
+                    className="flex-1 px-4 py-3 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-200 focus:border-emerald-500 focus:outline-none"
+                  />
                 </div>
               </div>
-            </div>
 
-            {/* About Media Setting */}
-            <div className="p-6 bg-stone-900/80 border border-stone-800 rounded-2xl space-y-5">
-              <div className="flex items-center justify-between">
-                <h3 className="font-title text-base font-bold text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span>Gambar / Video About Section</span>
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                {/* Media Preview */}
-                <div className="md:col-span-5 relative h-48 w-full bg-stone-950 rounded-xl overflow-hidden border border-stone-800">
-                  {settings.about_image ? (
-                    isVideo(settings.about_image) ? (
-                      <video src={settings.about_image} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                    ) : (
-                      <Image src={settings.about_image} alt="About Preview" fill className="object-cover" />
-                    )
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-stone-500 text-xs">
-                      Default Media Active
-                    </div>
-                  )}
-                </div>
-
-                {/* Input & Upload */}
-                <div className="md:col-span-7 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-semibold text-stone-300 uppercase tracking-wider">
-                      URL Media About (Gambar / MP4)
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.about_image || ""}
-                      onChange={(e) => setSettings({ ...settings, about_image: e.target.value })}
-                      placeholder="https://... atau /uploads/..."
-                      className="w-full px-4 py-2.5 rounded-xl bg-stone-950 border border-stone-800 text-sm text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <label className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-stone-200 cursor-pointer flex items-center space-x-2 transition-colors">
-                      <Upload className="w-4 h-4" />
-                      <span>{uploading ? "Mengunggah..." : "Unggah File (Gambar / MP4)"}</span>
-                      <input
-                        type="file"
-                        accept="image/*,video/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          if (e.target.files?.[0]) {
-                            const url = await handleFileUpload(e.target.files[0]);
-                            if (url) {
-                              setSettings({ ...settings, about_image: url });
-                            }
-                          }
-                        }}
-                      />
-                    </label>
-
-                    <button
-                      onClick={() => handleSaveSettings("about_image", settings.about_image || "")}
-                      disabled={saving}
-                      className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-1.5 transition-all shadow-md"
-                    >
-                      <Save className="w-3.5 h-3.5" />
-                      <span>Simpan Perubahan</span>
-                    </button>
-                  </div>
-                </div>
+              <div className="pt-3 border-t border-stone-900 flex justify-end">
+                <button
+                  onClick={() => handleSaveSettings("hero_image", settings.hero_image || "/uploads/clip_ipb.mp4")}
+                  disabled={saving}
+                  className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold uppercase tracking-widest flex items-center space-x-2 transition-all shadow-md"
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>Simpan Perubahan Hero Media</span>
+                </button>
               </div>
             </div>
           </div>
         )}
       </main>
 
-      {/* Project Form Modal */}
+      {/* MODAL EDIT / ADD PROJECT */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-stone-900 border border-stone-800 w-full max-w-2xl rounded-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-stone-950 border border-stone-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-6 p-6 md:p-8 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-stone-800 pb-4">
-              <h3 className="font-title text-xl font-bold text-white">
-                {editingId ? `Edit Proyek #${editingId}` : "Tambah Proyek Baru"}
+              <h3 className="font-bold text-white text-lg flex items-center space-x-2">
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+                <span>{editingId ? "Edit Proyek Riset" : "Tambah Proyek Riset Baru"}</span>
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-stone-400 hover:text-white text-sm"
+                className="text-stone-400 hover:text-white text-sm font-semibold p-1"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveProject} className="space-y-5">
+            <form onSubmit={handleSaveProject} className="space-y-4 max-h-[75vh] overflow-y-auto pr-2">
+              {/* Bahasa Indonesia Titles */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-stone-300">Judul (Bahasa Indonesia)</label>
+                <div>
+                  <label className="block text-xs font-semibold text-stone-300 mb-1">Judul (Bahasa Indonesia)</label>
                   <input
                     type="text"
                     required
                     value={formProject.titleId}
                     onChange={(e) => setFormProject({ ...formProject, titleId: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    placeholder="Contoh: Optimalisasi Mikronutrisi Tanah"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-stone-300">Title (English)</label>
+                <div>
+                  <label className="block text-xs font-semibold text-stone-300 mb-1">Judul (English)</label>
                   <input
                     type="text"
                     required
                     value={formProject.titleEn}
                     onChange={(e) => setFormProject({ ...formProject, titleEn: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    placeholder="Contoh: Soil Micronutrient Optimization"
                   />
                 </div>
               </div>
 
+              {/* Category & Tags */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-stone-300">Kategori</label>
+                <div>
+                  <label className="block text-xs font-semibold text-stone-300 mb-1">Kategori Riset</label>
                   <input
                     type="text"
                     required
-                    placeholder="Contoh: Agronomy Research"
                     value={formProject.category}
                     onChange={(e) => setFormProject({ ...formProject, category: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    placeholder="Agronomy, Biotech, Remote Sensing"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-stone-300">Status (ID / EN)</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      placeholder="Uji Coba Aktif"
-                      value={formProject.statusId}
-                      onChange={(e) => setFormProject({ ...formProject, statusId: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Active Trial"
-                      value={formProject.statusEn}
-                      onChange={(e) => setFormProject({ ...formProject, statusEn: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-semibold text-stone-300 mb-1">Tags (Pisahkan Koma)</label>
+                  <input
+                    type="text"
+                    required
+                    value={formProject.tags}
+                    onChange={(e) => setFormProject({ ...formProject, tags: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    placeholder="NPK, Sensor, AI"
+                  />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-stone-300">Deskripsi (Bahasa Indonesia)</label>
+              {/* Description ID */}
+              <div>
+                <label className="block text-xs font-semibold text-stone-300 mb-1">Deskripsi Ringkas (Indonesia)</label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   required
                   value={formProject.descriptionId}
                   onChange={(e) => setFormProject({ ...formProject, descriptionId: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  placeholder="Penjelasan singkat mengenai metode dan hasil riset..."
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-stone-300">Description (English)</label>
+              {/* Description EN */}
+              <div>
+                <label className="block text-xs font-semibold text-stone-300 mb-1">Deskripsi Ringkas (English)</label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   required
                   value={formProject.descriptionEn}
                   onChange={(e) => setFormProject({ ...formProject, descriptionEn: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  placeholder="Brief description of research methods and outcomes..."
                 />
               </div>
 
+              {/* Meta Stats ID & EN */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-stone-300">Meta Highlight (ID)</label>
-                  <input
-                    type="text"
-                    placeholder="1.200+ Sampel Tanah"
-                    value={formProject.metaId}
-                    onChange={(e) => setFormProject({ ...formProject, metaId: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-stone-300">Meta Highlight (EN)</label>
-                  <input
-                    type="text"
-                    placeholder="1,200+ Soil Samples"
-                    value={formProject.metaEn}
-                    onChange={(e) => setFormProject({ ...formProject, metaEn: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-stone-300">Tags (Dipisah Koma)</label>
-                <input
-                  type="text"
-                  placeholder="Genomics, Soil Health, Mycorrhizae"
-                  value={formProject.tags}
-                  onChange={(e) => setFormProject({ ...formProject, tags: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-stone-300">Media Proyek (Gambar atau MP4)</label>
-                <div className="flex items-center space-x-3">
+                <div>
+                  <label className="block text-xs font-semibold text-stone-300 mb-1">Statistik Meta (Indonesia)</label>
                   <input
                     type="text"
                     required
-                    placeholder="https://... atau /uploads/..."
-                    value={formProject.image}
-                    onChange={(e) => setFormProject({ ...formProject, image: e.target.value })}
-                    className="flex-1 px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm"
+                    value={formProject.metaId}
+                    onChange={(e) => setFormProject({ ...formProject, metaId: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    placeholder="Contoh: 8 Lapangan Uji • Peningkatan Hasil +24%"
                   />
+                </div>
 
-                  <label className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-stone-200 cursor-pointer flex items-center space-x-1.5 shrink-0">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{uploading ? "..." : "Unggah"}</span>
+                <div>
+                  <label className="block text-xs font-semibold text-stone-300 mb-1">Statistik Meta (English)</label>
+                  <input
+                    type="text"
+                    required
+                    value={formProject.metaEn}
+                    onChange={(e) => setFormProject({ ...formProject, metaEn: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    placeholder="Contoh: 8 Field Sites • +24% Yield Increase"
+                  />
+                </div>
+              </div>
+
+              {/* Upload Image / Video */}
+              <div className="space-y-2 pt-2 border-t border-stone-800">
+                <label className="block text-xs font-semibold text-stone-300">File Gambar / Video Proyek</label>
+                <div className="flex items-center space-x-3">
+                  <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700 text-white text-xs font-semibold flex items-center space-x-2">
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin text-emerald-400" /> : <Upload className="w-4 h-4 text-emerald-400" />}
+                    <span>{uploading ? "Compress..." : "Upload File"}</span>
                     <input
                       type="file"
                       accept="image/*,video/*"
                       className="hidden"
-                      onChange={async (e) => {
-                        if (e.target.files?.[0]) {
-                          const url = await handleFileUpload(e.target.files[0]);
-                          if (url) {
-                            setFormProject({ ...formProject, image: url });
-                          }
-                        }
-                      }}
+                      disabled={uploading}
+                      onChange={(e) =>
+                        handleFileUpload(e, (url) => {
+                          setFormProject((prev) => ({ ...prev, image: url }));
+                        })
+                      }
                     />
                   </label>
-                </div>
 
-                {formProject.image && (
-                  <div className="relative h-32 w-full rounded-xl overflow-hidden border border-stone-800 mt-2">
-                    {isVideo(formProject.image) ? (
-                      <video src={formProject.image} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                    ) : (
-                      <Image src={formProject.image} alt="Preview" fill className="object-cover" />
-                    )}
-                  </div>
-                )}
+                  <input
+                    type="text"
+                    required
+                    value={formProject.image}
+                    onChange={(e) => setFormProject({ ...formProject, image: e.target.value })}
+                    placeholder="/uploads/file.webp atau URL"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
               </div>
 
-              <div className="pt-4 border-t border-stone-800 flex items-center justify-end space-x-3">
+              <div className="pt-4 border-t border-stone-800 flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2 rounded-full border border-stone-800 text-stone-400 hover:text-white text-xs font-semibold"
+                  className="px-5 py-2.5 rounded-xl bg-stone-900 text-stone-300 text-xs font-semibold"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center space-x-2 shadow-lg shadow-emerald-600/20"
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold uppercase tracking-wider flex items-center space-x-2 shadow-md"
                 >
-                  {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   <span>{editingId ? "Simpan Perubahan" : "Tambah Proyek"}</span>
                 </button>
               </div>
