@@ -171,24 +171,7 @@ export default function Hero() {
                   priority
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-            </div>
-
-            {/* Floating Glassmorphism Metric Card */}
-            <div className="absolute bottom-6 left-6 right-6 z-20 bg-stone-900/80 backdrop-blur-md border border-stone-700/60 p-4 rounded-xl text-cream-50 shadow-xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs uppercase tracking-wider text-emerald-400 font-semibold">
-                    {t.hero.liveBadge}
-                  </h4>
-                  <p className="font-serif text-sm font-medium mt-0.5 text-stone-200">
-                    Stewardship Journal & Botani Seed
-                  </p>
-                </div>
-                <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-xs">
-                  85%
-                </div>
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>
           </div>
         </div>
