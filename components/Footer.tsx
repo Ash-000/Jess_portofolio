@@ -1,7 +1,6 @@
 "use client";
 
-import { Link001 } from "@/components/ui/skiper-ui/skiper40";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Instagram, Mail } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Footer() {
@@ -12,42 +11,43 @@ export default function Footer() {
   };
 
   return (
-    <footer className="py-14 bg-stone-100 dark:bg-stone-950 border-t border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 relative">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-8">
-        {/* Brand */}
-        <div className="space-y-1 text-center md:text-left">
-          <span className="font-serif text-xl font-bold tracking-tight text-forest-900 dark:text-cream-50">
-            Stewardship <span className="font-sans font-light text-emerald-700 dark:text-emerald-400">Journal</span>
-          </span>
-          <p className="text-xs text-stone-500">{t.footer.tagline}</p>
-        </div>
+    <footer className="py-12 bg-stone-100 dark:bg-stone-950 border-t border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 relative">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-8">
+        {/* Centered Controls: Instagram, Email, and Back-to-Top */}
+        <div className="flex items-center justify-center space-x-4">
+          {/* Instagram Link */}
+          <a
+            href="https://www.instagram.com/jesikaars?igsh=MXkyMTY5NTFmcnlheQ=="
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-3.5 rounded-full bg-stone-200/60 dark:bg-stone-900 border border-stone-300/60 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm"
+            aria-label="Instagram"
+          >
+            <Instagram className="w-5 h-5" />
+          </a>
 
-        {/* Skiper40 Animated Links */}
-        <div className="flex flex-wrap items-center justify-center gap-8 text-xs font-semibold uppercase tracking-wider">
-          <Link001 href="#home" className="hover:text-emerald-600 transition-colors">
-            {t.nav.home}
-          </Link001>
-          <Link001 href="https://instagram.com" className="hover:text-emerald-600 transition-colors">
-            Instagram
-          </Link001>
-          <Link001 href="https://github.com" className="hover:text-emerald-600 transition-colors">
-            GitHub
-          </Link001>
-          <Link001 href="#contact" className="hover:text-emerald-600 transition-colors">
-            {t.nav.contact}
-          </Link001>
-        </div>
+          {/* Email Link */}
+          <a
+            href="mailto:inquiries@stewardshipjournal.org"
+            className="p-3.5 rounded-full bg-stone-200/60 dark:bg-stone-900 border border-stone-300/60 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm"
+            aria-label="Email"
+          >
+            <Mail className="w-5 h-5" />
+          </a>
 
-        {/* Copyright & Scroll Back Top */}
-        <div className="flex items-center space-x-6 text-xs text-stone-500">
-          <span>© {new Date().getFullYear()} {t.footer.rights}</span>
+          {/* Back to Top Button */}
           <button
             onClick={scrollToTop}
-            className="p-2 rounded-full bg-stone-200/60 dark:bg-stone-800 hover:bg-emerald-500 hover:text-white transition-all duration-300 hover:scale-110 active:scale-95"
+            className="p-3.5 rounded-full bg-stone-200/60 dark:bg-stone-900 border border-stone-300/60 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-600 dark:hover:text-white transition-all duration-300 hover:scale-110 active:scale-95 shadow-sm"
             aria-label="Back to top"
           >
-            <ArrowUp className="w-4 h-4" />
+            <ArrowUp className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Bottom Row: Centered Copyright */}
+        <div className="pt-6 border-t border-stone-200/60 dark:border-stone-900 text-center text-xs text-stone-500 font-medium">
+          © {new Date().getFullYear()} {t.footer.rights}
         </div>
       </div>
     </footer>
