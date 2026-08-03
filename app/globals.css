@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════
+   DESIGN SYSTEM — Botanical Modernism
+   ═══════════════════════════════════════════ */
+
+:root {
+  --background: #FAF9F6;
+  --foreground: #1C2321;
+  --card-bg: #FFFFFF;
+  --card-border: #E8E2D5;
+  --muted-text: #5C6B64;
+  --accent-glow: rgba(16, 185, 129, 0.15);
+  --grain-opacity: 0.03;
+}
+
+.dark {
+  --background: #0C110E;
+  --foreground: #EAF0EC;
+  --card-bg: #141C17;
+  --card-border: #1E2B24;
+  --muted-text: #9EB0A5;
+  --accent-glow: rgba(52, 211, 153, 0.1);
+  --grain-opacity: 0.04;
+}
+
+/* ═══════════════════════════════════════════
+   BASE STYLES & SMOOTH THEME TRANSITION
+   ═══════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Smooth background & text transition across light/dark modes */
+body,
+header,
+section,
+footer,
+nav,
+div,
+h1, h2, h3, h4, h5, h6,
+p, span, a, button, input, textarea, select {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 500ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, .font-serif, .font-title {
+  font-family: var(--font-plus-jakarta), system-ui, sans-serif;
+  letter-spacing: -0.025em;
+}
+
+/* ═══════════════════════════════════════════
+   FILM GRAIN TEXTURE OVERLAY
+   ═══════════════════════════════════════════ */
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ═══════════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #708779;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2D4A3E;
+}
+
+/* ═══════════════════════════════════════════
+   ANIMATION UTILITIES
+   ═══════════════════════════════════════════ */
+
+/* Word-split reveal container */
+.word-reveal .word {
+  display: inline-block;
+  overflow: hidden;
+}
+.word-reveal .word-inner {
+  display: inline-block;
+  transform: translateY(110%);
+}
+
+/* Line expand from center */
+.line-expand {
+  display: block;
+  width: 0;
+  height: 2px;
+  background: currentColor;
+  margin: 0 auto;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.line-expand.is-visible {
+  width: 100%;
+}
+
+/* 3D tilt card */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out;
+}
+.tilt-card .tilt-inner {
+  transform: translateZ(30px);
+}
+
+/* Ambient floating orbs */
+@keyframes float-orb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -40px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.95); }
+  75% { transform: translate(40px, 10px) scale(1.05); }
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  animation: float-orb 20s ease-in-out infinite;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  body::after {
+    display: none;
+  }
+}
