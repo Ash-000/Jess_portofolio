@@ -16,7 +16,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Portofolio Ares | Agriculture & Innovation",
+  title: "Portofolio Ares",
   description: "Dedicated to the advancement of sustainable practice, technology, and practical innovation.",
 };
 

@@ -153,9 +153,11 @@ export default function About() {
             </h3>
 
             <div className="p-6 rounded-2xl bg-white/90 dark:bg-stone-950/80 border-l-4 border-emerald-600 dark:border-emerald-400 border border-stone-200/60 dark:border-stone-800/60 italic font-serif text-stone-800 dark:text-stone-200 relative shadow-sm">
-              <Quote className="w-8 h-8 text-emerald-600/20 dark:text-emerald-400/20 absolute top-4 right-4" />
-              &ldquo;{t.about.quote}&rdquo;
-              <span className="block mt-4 text-xs font-sans not-italic font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-widest">
+              <Quote className="w-8 h-8 text-emerald-600/20 dark:text-emerald-400/20 absolute top-4 right-4 pointer-events-none select-none" />
+              <p className="pr-10 sm:pr-12 relative z-10">
+                &ldquo;{t.about.quote}&rdquo;
+              </p>
+              <span className="block mt-4 text-xs font-sans not-italic font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-widest relative z-10">
                 — {t.about.philosophy}
               </span>
             </div>
